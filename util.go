@@ -57,6 +57,10 @@ func structValue(m map[string]reflect.Value, value reflect.Value) {
 				// ignore
 				continue
 			}
+			if field.Anonymous {
+				structValue(m, value.Field(i))
+				continue
+			}
 			if tag == "" {
 				// no tag, but we can record the field name
 				tag = camelCaseToSnakeCase(field.Name)

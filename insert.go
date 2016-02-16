@@ -94,6 +94,14 @@ func (b *InsertStmt) Record(structValue interface{}) *InsertStmt {
 	if v.Kind() == reflect.Struct {
 		var value []interface{}
 		m := structMap(v)
+		if len(b.Column) == 0 {
+			var columns []string
+			for k, _ := range m {
+				columns = append(columns, k)
+			}
+			b.Columns(columns...)
+		}
+
 		for _, key := range b.Column {
 			if val, ok := m[key]; ok {
 				value = append(value, val.Interface())
