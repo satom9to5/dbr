@@ -5,6 +5,8 @@ import (
 	"reflect"
 )
 
+type PreInsertHook func(*InsertBuilder, interface{}) *InsertBuilder
+
 type InsertBuilder struct {
 	runner
 	EventReceiver
@@ -13,6 +15,8 @@ type InsertBuilder struct {
 	RecordID reflect.Value
 
 	*InsertStmt
+
+	PreInsertHooks []PreInsertHook
 }
 
 func (sess *Session) InsertInto(table string) *InsertBuilder {
@@ -106,6 +110,12 @@ func (b *InsertBuilder) Record(structValue interface{}) *InsertBuilder {
 		}
 	}
 
+	if len(b.PreInsertHooks) > 0 {
+		for _, f := range b.PreInsertHooks {
+			f(b, structValue)
+		}
+	}
+
 	b.InsertStmt.Record(structValue)
 	return b
 }
@@ -113,4 +123,8 @@ func (b *InsertBuilder) Record(structValue interface{}) *InsertBuilder {
 func (b *InsertBuilder) Values(value ...interface{}) *InsertBuilder {
 	b.InsertStmt.Values(value...)
 	return b
+}
+
+func (b *InsertBuilder) SetPreInsertHook(f PreInsertHook) {
+	b.PreInsertHooks = append(b.PreInsertHooks, f)
 }

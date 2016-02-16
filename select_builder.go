@@ -1,11 +1,15 @@
 package dbr
 
+type PreSelectHook func(*SelectBuilder, interface{}) *SelectBuilder
+
 type SelectBuilder struct {
 	runner
 	EventReceiver
 	Dialect Dialect
 
 	*SelectStmt
+
+	PreSelectHooks []PreSelectHook
 }
 
 func prepareSelect(a []string) []interface{} {
@@ -61,12 +65,27 @@ func (b *SelectBuilder) ToSql() (string, []interface{}) {
 	return buf.String(), buf.Value()
 }
 
+func (b *SelectBuilder) Query(value interface{}) (int, error) {
+	if len(b.PreSelectHooks) > 0 {
+		for _, f := range b.PreSelectHooks {
+			f(b, value)
+		}
+	}
+
+	count, err := query(b.runner, b.EventReceiver, b, b.Dialect, value)
+	if err != nil {
+		return count, err
+	}
+
+	return count, nil
+}
+
 func (b *SelectBuilder) Load(value interface{}) (int, error) {
-	return query(b.runner, b.EventReceiver, b, b.Dialect, value)
+	return b.Query(value)
 }
 
 func (b *SelectBuilder) LoadStruct(value interface{}) error {
-	count, err := query(b.runner, b.EventReceiver, b, b.Dialect, value)
+	count, err := b.Query(value)
 	if err != nil {
 		return err
 	}
@@ -77,11 +96,11 @@ func (b *SelectBuilder) LoadStruct(value interface{}) error {
 }
 
 func (b *SelectBuilder) LoadStructs(value interface{}) (int, error) {
-	return query(b.runner, b.EventReceiver, b, b.Dialect, value)
+	return b.Query(value)
 }
 
 func (b *SelectBuilder) LoadValue(value interface{}) error {
-	count, err := query(b.runner, b.EventReceiver, b, b.Dialect, value)
+	count, err := b.Query(value)
 	if err != nil {
 		return err
 	}
@@ -168,4 +187,8 @@ func (b *SelectBuilder) OrderBy(col string) *SelectBuilder {
 func (b *SelectBuilder) Where(query interface{}, value ...interface{}) *SelectBuilder {
 	b.SelectStmt.Where(query, value...)
 	return b
+}
+
+func (b *SelectBuilder) SetPreSelectHook(f PreSelectHook) {
+	b.PreSelectHooks = append(b.PreSelectHooks, f)
 }

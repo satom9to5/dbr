@@ -5,6 +5,8 @@ import (
 	"fmt"
 )
 
+type PreUpdateHook func(b *UpdateBuilder) *UpdateBuilder
+
 type UpdateBuilder struct {
 	runner
 	EventReceiver
@@ -13,6 +15,8 @@ type UpdateBuilder struct {
 	*UpdateStmt
 
 	LimitCount int64
+
+	PreUpdateHooks []PreUpdateHook
 }
 
 func (sess *Session) Update(table string) *UpdateBuilder {
@@ -65,6 +69,11 @@ func (b *UpdateBuilder) ToSql() (string, []interface{}) {
 }
 
 func (b *UpdateBuilder) Exec() (sql.Result, error) {
+	if len(b.PreUpdateHooks) > 0 {
+		for _, f := range b.PreUpdateHooks {
+			f(b)
+		}
+	}
 	return exec(b.runner, b.EventReceiver, b, b.Dialect)
 }
 
@@ -98,4 +107,8 @@ func (b *UpdateBuilder) Build(d Dialect, buf Buffer) error {
 		buf.WriteString(fmt.Sprint(b.LimitCount))
 	}
 	return nil
+}
+
+func (b *UpdateBuilder) SetPreUpdateHook(f PreUpdateHook) {
+	b.PreUpdateHooks = append(b.PreUpdateHooks, f)
 }
