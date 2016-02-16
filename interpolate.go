@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gocraft/dbr/dialect"
+	"github.com/satom9to5/dbr/dialect"
 )
 
 // Don't break the API

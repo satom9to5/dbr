@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/gocraft/dbr/dialect"
+	"github.com/satom9to5/dbr/dialect"
 )
 
 // Open instantiates a Connection for a given database/sql connection
