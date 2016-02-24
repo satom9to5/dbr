@@ -120,6 +120,40 @@ func (b *InsertBuilder) Record(structValue interface{}) *InsertBuilder {
 	return b
 }
 
+func (b *InsertBuilder) Records(structValues interface{}) *InsertBuilder {
+	v := reflect.ValueOf(structValues)
+	s := reflect.Value{}
+	switch v.Kind() {
+	case reflect.Ptr:
+		s = v.Elem()
+		if s.Kind() != reflect.Slice {
+			return b
+		}
+	case reflect.Slice:
+		s = v
+	default:
+		return b
+	}
+
+	//t := v.Type().Elem()
+
+	sLen := s.Len()
+
+	for i := 0; i < sLen; i++ {
+		structValue := s.Index(i).Addr().Interface()
+
+		if len(b.PreInsertHooks) > 0 {
+			for _, f := range b.PreInsertHooks {
+				f(b, structValue)
+			}
+		}
+
+		b.InsertStmt.Record(structValue)
+	}
+
+	return b
+}
+
 func (b *InsertBuilder) Values(value ...interface{}) *InsertBuilder {
 	b.InsertStmt.Values(value...)
 	return b
