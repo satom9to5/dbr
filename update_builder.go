@@ -77,8 +77,8 @@ func (b *UpdateBuilder) Exec() (sql.Result, error) {
 	return exec(b.runner, b.EventReceiver, b, b.Dialect)
 }
 
-func (b *UpdateBuilder) Set(column string, value interface{}) *UpdateBuilder {
-	b.UpdateStmt.Set(column, value)
+func (b *UpdateBuilder) Set(column string, value ...interface{}) *UpdateBuilder {
+	b.UpdateStmt.Set(column, value...)
 	return b
 }
 

@@ -33,11 +33,22 @@ func (b *UpdateStmt) Build(d Dialect, buf Buffer) error {
 		if i > 0 {
 			buf.WriteString(", ")
 		}
+
 		buf.WriteString(d.QuoteIdent(col))
 		buf.WriteString(" = ")
-		buf.WriteString(d.Placeholder())
 
-		buf.WriteValue(v)
+		switch v := v.(type) {
+		case Builder:
+			err := v.Build(d, buf)
+			if err != nil {
+				return err
+			}
+		default:
+			buf.WriteString(d.Placeholder())
+
+			buf.WriteValue(v)
+		}
+
 		i++
 	}
 
@@ -82,8 +93,26 @@ func (b *UpdateStmt) Where(query interface{}, value ...interface{}) *UpdateStmt 
 }
 
 // Set specifies a key-value pair
-func (b *UpdateStmt) Set(column string, value interface{}) *UpdateStmt {
-	b.Value[column] = value
+func (b *UpdateStmt) Set(column string, value ...interface{}) *UpdateStmt {
+	if len(value) == 0 {
+		return b
+	}
+
+	switch v := value[0].(type) {
+	case string:
+		if len(value) > 1 {
+			b.Value[column] = Expr(v, value[1:])
+		} else {
+			b.Value[column] = v
+		}
+	default:
+		if len(value) > 1 {
+			return b
+		}
+
+		b.Value[column] = v
+	}
+
 	return b
 }
 
