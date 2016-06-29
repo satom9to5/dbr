@@ -109,6 +109,10 @@ func (b *UpdateBuilder) Build(d Dialect, buf Buffer) error {
 	return nil
 }
 
-func (b *UpdateBuilder) SetPreUpdateHook(f PreUpdateHook) {
-	b.PreUpdateHooks = append(b.PreUpdateHooks, f)
+func (b *UpdateBuilder) SetPreUpdateHooks(f ...PreUpdateHook) {
+	b.PreUpdateHooks = append(b.PreUpdateHooks, f...)
+}
+
+func (b *UpdateBuilder) ClearPreUpdateHooks() {
+	b.PreUpdateHooks = []PreUpdateHook{}
 }

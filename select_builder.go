@@ -189,6 +189,10 @@ func (b *SelectBuilder) Where(query interface{}, value ...interface{}) *SelectBu
 	return b
 }
 
-func (b *SelectBuilder) SetPreSelectHook(f PreSelectHook) {
-	b.PreSelectHooks = append(b.PreSelectHooks, f)
+func (b *SelectBuilder) SetPreSelectHooks(f ...PreSelectHook) {
+	b.PreSelectHooks = append(b.PreSelectHooks, f...)
+}
+
+func (b *SelectBuilder) ClearPreSelectHooks() {
+	b.PreSelectHooks = []PreSelectHook{}
 }

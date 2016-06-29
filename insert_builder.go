@@ -159,6 +159,10 @@ func (b *InsertBuilder) Values(value ...interface{}) *InsertBuilder {
 	return b
 }
 
-func (b *InsertBuilder) SetPreInsertHook(f PreInsertHook) {
-	b.PreInsertHooks = append(b.PreInsertHooks, f)
+func (b *InsertBuilder) SetPreInsertHooks(f ...PreInsertHook) {
+	b.PreInsertHooks = append(b.PreInsertHooks, f...)
+}
+
+func (b *InsertBuilder) ClearPreInsertHooks() {
+	b.PreInsertHooks = []PreInsertHook{}
 }
